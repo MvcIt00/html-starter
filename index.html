@@ -1,1 +1,333 @@
-<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Start</title><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-size:48px;background:#000;color:#fff;}</style></head><body>start</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplane Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+        }
+        
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Distance: 0m</div>
+    <canvas id="gameCanvas"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        
+        // Set canvas to full screen
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // Game state
+        const game = {
+            score: 0,
+            scrollSpeed: 3,
+            backgroundOffset: 0
+        };
+        
+        // Airplane object
+        const airplane = {
+            x: 100,
+            y: canvas.height / 2,
+            width: 60,
+            height: 30,
+            speed: 5,
+            velocityY: 0
+        };
+        
+        // Controls
+        const keys = {};
+        
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Background elements
+        class Cloud {
+            constructor() {
+                this.x = Math.random() * canvas.width + canvas.width;
+                this.y = Math.random() * (canvas.height * 0.4);
+                this.width = 80 + Math.random() * 60;
+                this.height = 40 + Math.random() * 30;
+                this.speed = 1 + Math.random() * 1.5;
+            }
+            
+            update() {
+                this.x -= this.speed;
+                if (this.x + this.width < 0) {
+                    this.x = canvas.width + Math.random() * 200;
+                    this.y = Math.random() * (canvas.height * 0.4);
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                // Draw cloud shape with multiple circles
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.height * 0.5, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width * 0.3, this.y - this.height * 0.2, this.height * 0.6, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width * 0.6, this.y, this.height * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        class Mountain {
+            constructor(x) {
+                this.x = x;
+                this.y = canvas.height * 0.6;
+                this.width = 200 + Math.random() * 150;
+                this.height = 150 + Math.random() * 100;
+                this.color = `hsl(${120 + Math.random() * 40}, 50%, ${40 + Math.random() * 10}%)`;
+            }
+            
+            update() {
+                this.x -= game.scrollSpeed;
+                if (this.x + this.width < 0) {
+                    this.x = canvas.width + Math.random() * 100;
+                    this.height = 150 + Math.random() * 100;
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + this.height);
+                ctx.lineTo(this.x + this.width / 2, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Snow cap
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width / 2, this.y);
+                ctx.lineTo(this.x + this.width / 2 - 30, this.y + 40);
+                ctx.lineTo(this.x + this.width / 2 + 30, this.y + 40);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+        
+        class Tree {
+            constructor() {
+                this.x = Math.random() * canvas.width + canvas.width;
+                this.y = canvas.height - 80 - Math.random() * 50;
+                this.width = 40;
+                this.height = 60;
+            }
+            
+            update() {
+                this.x -= game.scrollSpeed;
+                if (this.x + this.width < 0) {
+                    this.x = canvas.width + Math.random() * 300;
+                    this.y = canvas.height - 80 - Math.random() * 50;
+                }
+            }
+            
+            draw() {
+                // Tree trunk
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(this.x + this.width / 3, this.y + this.height / 2, this.width / 3, this.height / 2);
+                
+                // Tree foliage (triangle)
+                ctx.fillStyle = '#228B22';
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width / 2, this.y);
+                ctx.lineTo(this.x, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Second layer
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width / 2, this.y + this.height / 4);
+                ctx.lineTo(this.x - 5, this.y + this.height / 1.5);
+                ctx.lineTo(this.x + this.width + 5, this.y + this.height / 1.5);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+        
+        // Initialize background elements
+        const clouds = [];
+        for (let i = 0; i < 8; i++) {
+            const cloud = new Cloud();
+            cloud.x = Math.random() * canvas.width;
+            clouds.push(cloud);
+        }
+        
+        const mountains = [];
+        for (let i = 0; i < 5; i++) {
+            mountains.push(new Mountain(i * 300));
+        }
+        
+        const trees = [];
+        for (let i = 0; i < 10; i++) {
+            const tree = new Tree();
+            tree.x = Math.random() * canvas.width;
+            trees.push(tree);
+        }
+        
+        // Draw airplane
+        function drawAirplane() {
+            const x = airplane.x;
+            const y = airplane.y;
+            
+            // Main body (triangle pointing right)
+            ctx.fillStyle = '#FF6B6B';
+            ctx.beginPath();
+            ctx.moveTo(x + airplane.width, y);
+            ctx.lineTo(x, y - airplane.height / 2);
+            ctx.lineTo(x, y + airplane.height / 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Wings
+            ctx.fillStyle = '#4ECDC4';
+            ctx.beginPath();
+            ctx.moveTo(x + airplane.width / 3, y - 5);
+            ctx.lineTo(x + airplane.width / 3 - 15, y - airplane.height);
+            ctx.lineTo(x + airplane.width / 2, y - 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + airplane.width / 3, y + 5);
+            ctx.lineTo(x + airplane.width / 3 - 15, y + airplane.height);
+            ctx.lineTo(x + airplane.width / 2, y + 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Window
+            ctx.fillStyle = '#FFEB3B';
+            ctx.beginPath();
+            ctx.arc(x + airplane.width / 2, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Propeller
+            ctx.strokeStyle = '#95E1D3';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            const propAngle = Date.now() / 50;
+            ctx.moveTo(x + airplane.width, y - 12);
+            ctx.lineTo(x + airplane.width + 5, y + 12);
+            ctx.stroke();
+        }
+        
+        // Update airplane position
+        function updateAirplane() {
+            // Vertical movement
+            if (keys['ArrowUp'] || keys['w'] || keys['W']) {
+                airplane.velocityY = -airplane.speed;
+            } else if (keys['ArrowDown'] || keys['s'] || keys['S']) {
+                airplane.velocityY = airplane.speed;
+            } else {
+                airplane.velocityY = 0;
+            }
+            
+            airplane.y += airplane.velocityY;
+            
+            // Keep airplane within bounds
+            if (airplane.y - airplane.height / 2 < 0) {
+                airplane.y = airplane.height / 2;
+            }
+            if (airplane.y + airplane.height / 2 > canvas.height) {
+                airplane.y = canvas.height - airplane.height / 2;
+            }
+        }
+        
+        // Draw ground
+        function drawGround() {
+            // Grass
+            ctx.fillStyle = '#7EC850';
+            ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
+            
+            // Ground pattern
+            ctx.fillStyle = '#6BA83C';
+            for (let i = 0; i < canvas.width; i += 40) {
+                const offset = (game.backgroundOffset * 2) % 40;
+                ctx.fillRect(i - offset, canvas.height - 60, 20, 60);
+            }
+        }
+        
+        // Main game loop
+        function gameLoop() {
+            // Clear canvas
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw clouds
+            clouds.forEach(cloud => {
+                cloud.update();
+                cloud.draw();
+            });
+            
+            // Update and draw mountains
+            mountains.forEach(mountain => {
+                mountain.update();
+                mountain.draw();
+            });
+            
+            // Draw ground
+            drawGround();
+            
+            // Update and draw trees
+            trees.forEach(tree => {
+                tree.update();
+                tree.draw();
+            });
+            
+            // Update and draw airplane
+            updateAirplane();
+            drawAirplane();
+            
+            // Update score
+            game.score += 0.1;
+            game.backgroundOffset += game.scrollSpeed;
+            scoreEl.textContent = `Distance: ${Math.floor(game.score)}m`;
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
