@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Airplane Adventure</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,320 +13,310 @@
       .message { background: rgba(0,0,0,0.45); color: #fff; padding: 18px 24px; border-radius: 10px; font-size: 28px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.25); white-space: pre-line; }
       .hidden { display: none; }
     </style>
-  </head>
-  <body>
-    <div id="score">Distance: 0m</div>
-    <div id="startOverlay" class="center-overlay"><div class="message">Press SPACE to start</div></div>
-    <div id="gameOverOverlay" class="center-overlay hidden"><div id="gameOverMessage" class="message"></div></div>
-    <canvas id="gameCanvas"></canvas>
+</head>
+<body>
+  <div id="score">Distance: 0m</div>
+  <div id="startOverlay" class="center-overlay"><div class="message">Press SPACE to start</div></div>
+  <div id="gameOverOverlay" class="center-overlay hidden"><div id="gameOverMessage" class="message"></div></div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const startOverlay = document.getElementById('startOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const gameOverMessage = document.getElementById('gameOverMessage');
 
-    <script>
-      const canvas = document.getElementById('gameCanvas');
-      const ctx = canvas.getContext('2d');
-      const scoreEl = document.getElementById('score');
-      const startOverlay = document.getElementById('startOverlay');
-      const gameOverOverlay = document.getElementById('gameOverOverlay');
-      const gameOverMessage = document.getElementById('gameOverMessage');
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-      function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
-      resize();
-      window.addEventListener('resize', resize);
+    const game = {
+      running: false,
+      score: 0,
+      scrollSpeed: 2,
+      backgroundOffset: 0
+    };
 
-      // Game state
-      const game = {
-        running: false,
-        over: false,
-        score: 0,
-        backgroundOffset: 0,
-        scrollSpeedBase: 2,
-        scrollSpeed: 2,
-        altitude: 0,
-      };
+    const airplane = {
+      x: 150,
+      y: canvas.height / 2,
+      velocity: 0,
+      thrust: 0.3,
+      gravity: 0.15,
+      angle: 0,
+      targetAngle: 0
+    };
 
-      // Controls with ballistic physics (acceleration + momentum)
-      const keys = { ArrowUp: false, ArrowDown: false, Space: false };
-      window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') e.preventDefault();
-        if (e.code in keys) keys[e.code] = true;
-        if (e.code === 'Space') {
-          if (!game.running && !game.over) startGame();
-          else if (game.over) { restartGame(); startGame(); }
-        }
+    const clouds = [];
+    for (let i = 0; i < 8; i++) {
+      clouds.push({
+        x: Math.random() * canvas.width * 2,
+        y: Math.random() * (canvas.height * 0.6),
+        size: Math.random() * 40 + 20,
+        opacity: Math.random() * 0.4 + 0.3
       });
-      window.addEventListener('keyup', (e) => { if (e.code in keys) keys[e.code] = false; });
+    }
 
-      // Airplane with ballistic physics parameters
-      const airplane = {
-        x: 120,
-        y: canvas.height / 2,
-        width: 110,
-        height: 36,
-        velocityY: 0,
-        accelY: 0,
-        angle: 0, // radians
-        maxTilt: 50 * Math.PI / 180, // >= ±45°
-        thrustAccel: 0.7, // acceleration applied by key press
-        gravity: 0.25,    // constant gravity pulling down
-        drag: 0.992,      // velocity decay to keep momentum but slowly dampen
-        accelDrag: 0.85,  // decay for acceleration input for smoothness
-      };
+    const keys = { space: false, up: false, down: false };
 
-      // Environment objects
-      const clouds = Array.from({ length: 12 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * (canvas.height * 0.5),
-        r: 20 + Math.random() * 30,
-        speed: 0.5 + Math.random() * 0.7,
-      }));
-      const mountains = Array.from({ length: 6 }, (_, i) => ({
-        x: i * 300,
-        height: 150 + Math.random() * 100,
-      }));
-      const trees = Array.from({ length: 10 }, () => ({
-        x: Math.random() * canvas.width,
-        y: 0,
-        h: 60 + Math.random() * 30,
-        speed: 2 + Math.random(),
-      }));
+    function drawSkyGradient() {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#87CEEB');
+      gradient.addColorStop(0.6, '#B0E0E6');
+      gradient.addColorStop(1, '#E0F6FF');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
-      function updateAirplane() {
-        // Ballistic controls: keys add to acceleration, which integrates to velocity
-        if (keys.ArrowUp) airplane.accelY -= airplane.thrustAccel;
-        if (keys.ArrowDown) airplane.accelY += airplane.thrustAccel;
-
-        // Acceleration decays for smooth release behavior
-        airplane.accelY *= airplane.accelDrag;
-
-        // Apply gravity and acceleration to velocity
-        airplane.velocityY += airplane.gravity + airplane.accelY;
-        // Apply drag to velocity to keep momentum but slowly decay
-        airplane.velocityY *= airplane.drag;
-        // Integrate velocity to position
-        airplane.y += airplane.velocityY;
-
-        // Remove ALL upper limits: y can go to negative infinity
-        // Only interact with ground on the bottom
-        const groundY = canvas.height - 100;
-        if (airplane.y > groundY) {
-          airplane.y = groundY;
-          airplane.velocityY = 0;
-          airplane.accelY = 0;
-        }
-
-        // Update altitude relative to ground; allow very high altitude visualization
-        game.altitude = Math.max(0, groundY - airplane.y);
-
-        // Angle based on vertical velocity; clamp to ±45° or more
-        const targetAngle = Math.max(-airplane.maxTilt, Math.min(airplane.maxTilt, -airplane.velocityY * 0.06));
-        // Smooth rotation
-        airplane.angle += (targetAngle - airplane.angle) * 0.18;
+    function drawMountains() {
+      ctx.fillStyle = '#8B7D6B';
+      const mountainHeight = canvas.height * 0.3;
+      const baseY = canvas.height - 100;
+      
+      ctx.beginPath();
+      ctx.moveTo(-game.backgroundOffset % canvas.width - 100, baseY);
+      
+      for (let x = -game.backgroundOffset % canvas.width - 100; x < canvas.width + 200; x += 80) {
+        const peakHeight = Math.sin(x * 0.01 + game.backgroundOffset * 0.001) * mountainHeight * 0.5 + mountainHeight;
+        ctx.lineTo(x + 40, baseY - peakHeight);
+        ctx.lineTo(x + 80, baseY);
       }
+      
+      ctx.lineTo(canvas.width + 200, canvas.height);
+      ctx.lineTo(-200, canvas.height);
+      ctx.closePath();
+      ctx.fill();
 
-      function drawSkyGradient() {
-        // Dynamic sky gradient based on altitude, continues changing at very high altitudes
-        const a = 1 - Math.exp(-game.altitude / 1200); // approaches 1 as altitude -> infinity
-        function lerpColorHex(c1, c2, t) {
-          const a1 = c1.match(/\w\w/g).map(x => parseInt(x, 16));
-          const a2 = c2.match(/\w\w/g).map(x => parseInt(x, 16));
-          const c = a1.map((v, i) => Math.round(v + (a2[i] - v) * t));
-          return `#${c.map(v => v.toString(16).padStart(2, '0')).join('')}`;
-        }
-        const c0 = '#87CEEB';
-        const c1 = '#3A88C2';
-        const c2 = '#202060';
-        const c3 = '#0A0014';
-        const c4 = '#000000';
-
-        const t1 = Math.min(1, a / 0.33);
-        const t2 = Math.min(1, Math.max(0, (a - 0.33) / 0.33));
-        const t3 = Math.min(1, Math.max(0, (a - 0.66) / 0.34));
-
-        const top = t3 > 0 ? lerpColorHex(c2, c4, t3) : (t2 > 0 ? lerpColorHex(c1, c2, t2) : lerpColorHex(c0, c1, t1));
-        const mid = t3 > 0 ? lerpColorHex(c3, c4, t3) : (t2 > 0 ? lerpColorHex('#2F6DA3', '#1A1A4A', t2) : lerpColorHex('#A0D8F1', '#2F6DA3', t1));
-        const bot = t3 > 0 ? lerpColorHex('#0A0014', c4, t3) : (t2 > 0 ? lerpColorHex('#1E4F7F', '#14143A', t2) : lerpColorHex('#B0E0E6', '#1E4F7F', t1));
-
-        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        grad.addColorStop(0, top);
-        grad.addColorStop(0.55, mid);
-        grad.addColorStop(1, bot);
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#9B8D7B';
+      ctx.beginPath();
+      ctx.moveTo(-game.backgroundOffset % canvas.width - 150, baseY);
+      
+      for (let x = -game.backgroundOffset % canvas.width - 150; x < canvas.width + 250; x += 100) {
+        const peakHeight = Math.sin(x * 0.008 + game.backgroundOffset * 0.0008) * mountainHeight * 0.7 + mountainHeight * 0.6;
+        ctx.lineTo(x + 50, baseY - peakHeight);
+        ctx.lineTo(x + 100, baseY);
       }
+      
+      ctx.lineTo(canvas.width + 250, canvas.height);
+      ctx.lineTo(-250, canvas.height);
+      ctx.closePath();
+      ctx.fill();
+    }
 
-      function drawGround() {
-        const groundY = canvas.height - 100;
-        ctx.fillStyle = '#5c8a3a';
-        ctx.fillRect(0, groundY, canvas.width, 100);
-      }
-
-      function drawCloud(c) {
-        const yParallax = 1 - Math.min(1, game.altitude / 1200) * 0.5;
-        ctx.save();
-        ctx.translate(c.x - game.backgroundOffset * c.speed, c.y * yParallax + 40);
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        for (let i = 0; i < 5; i++) {
-          const r = c.r * (0.8 + Math.random() * 0.4);
+    function drawTrees() {
+      const groundY = canvas.height - 100;
+      ctx.fillStyle = '#228B22';
+      
+      for (let x = -game.backgroundOffset % 150; x < canvas.width + 100; x += 150) {
+        if (Math.sin(x * 0.01) > 0.3) {
           ctx.beginPath();
-          ctx.arc(i * c.r * 0.9, Math.sin(i) * 6, r, 0, Math.PI * 2);
+          ctx.arc(x, groundY - 30, 25, 0, Math.PI * 2);
           ctx.fill();
+          
+          ctx.fillStyle = '#8B4513';
+          ctx.fillRect(x - 5, groundY - 30, 10, 30);
+          ctx.fillStyle = '#228B22';
         }
-        ctx.restore();
-        if (c.x - game.backgroundOffset * c.speed < -150) c.x += canvas.width + 300;
       }
+    }
 
-      function drawMountains() {
-        ctx.save();
-        ctx.translate(-game.backgroundOffset * 0.6, 0);
-        mountains.forEach((m) => {
-          const baseY = canvas.height - 100;
-          const w = 300;
-          const x = m.x;
-          const h = m.height;
-          ctx.fillStyle = '#556';
-          ctx.beginPath();
-          ctx.moveTo(x, baseY);
-          ctx.lineTo(x + w / 2, baseY - h);
-          ctx.lineTo(x + w, baseY);
-          ctx.closePath();
-          ctx.fill();
-        });
-        ctx.restore();
+    function drawGround() {
+      const groundY = canvas.height - 100;
+      ctx.fillStyle = '#8FBC8F';
+      ctx.fillRect(0, groundY, canvas.width, 100);
+      
+      ctx.fillStyle = '#90EE90';
+      for (let x = -game.backgroundOffset % 20; x < canvas.width; x += 20) {
+        ctx.fillRect(x, groundY, 10, 5);
       }
+    }
 
-      function drawTrees() {
-        ctx.save();
-        ctx.translate(-game.backgroundOffset, 0);
-        const baseY = canvas.height - 100;
-        trees.forEach((t) => {
-          ctx.fillStyle = '#4b2e12';
-          ctx.fillRect(t.x - 3, baseY - t.h, 6, t.h);
-          ctx.fillStyle = '#2f6d1b';
-          ctx.beginPath();
-          ctx.moveTo(t.x, baseY - t.h - 20);
-          ctx.lineTo(t.x - 20, baseY - 20);
-          ctx.lineTo(t.x + 20, baseY - 20);
-          ctx.closePath();
-          ctx.fill();
-        });
-        ctx.restore();
+    function drawCloud(cloud) {
+      ctx.save();
+      ctx.globalAlpha = cloud.opacity;
+      ctx.fillStyle = 'white';
+      
+      const x = cloud.x - game.backgroundOffset * 0.3;
+      if (x < -cloud.size || x > canvas.width + cloud.size) {
+        cloud.x = canvas.width + cloud.size + Math.random() * canvas.width;
+        cloud.y = Math.random() * (canvas.height * 0.6);
       }
-
-      function drawAirplane() {
-        ctx.save();
-        ctx.translate(airplane.x, airplane.y);
-        ctx.rotate(airplane.angle);
-
-        // Professional-looking airplane silhouette with details
-        // Fuselage
-        ctx.fillStyle = '#d9d9d9';
-        ctx.strokeStyle = '#999';
-        ctx.lineWidth = 2;
-        const fuselageLen = 120;
-        const fuselageH = 22;
+      
+      for (let i = 0; i < 6; i++) {
+        const offsetX = (Math.random() - 0.5) * cloud.size;
+        const offsetY = (Math.random() - 0.5) * cloud.size * 0.6;
+        const radius = cloud.size * (0.4 + Math.random() * 0.3);
+        
         ctx.beginPath();
-        ctx.moveTo(-30, -fuselageH/2);
-        ctx.quadraticCurveTo(fuselageLen*0.05, -fuselageH*1.3, fuselageLen*0.55, -fuselageH/2);
-        ctx.lineTo(fuselageLen*0.95, -4);
-        ctx.quadraticCurveTo(fuselageLen*1.05, 0, fuselageLen*0.95, 4);
-        ctx.lineTo(fuselageLen*0.55, fuselageH/2);
-        ctx.quadraticCurveTo(fuselageLen*0.05, fuselageH*1.3, -30, fuselageH/2);
-        ctx.closePath();
+        ctx.arc(x + offsetX, cloud.y + offsetY, radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
-
-        // Cockpit canopy
-        ctx.fillStyle = '#5fb2ff';
-        ctx.beginPath();
-        ctx.ellipse(35, -7, 18, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Engine intake / nose cone
-        ctx.fillStyle = '#c0c0c0';
-        ctx.beginPath();
-        ctx.arc(fuselageLen*0.98, 0, 6, 0, Math.PI*2);
-        ctx.fill();
-
-        // Propeller hub and blades
-        ctx.fillStyle = '#777';
-        ctx.beginPath();
-        ctx.arc(fuselageLen*0.98 + 8, 0, 3, 0, Math.PI*2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(80,80,80,0.7)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(fuselageLen*0.98 + 8, -14);
-        ctx.lineTo(fuselageLen*0.98 + 8, 14);
-        ctx.moveTo(fuselageLen*0.98 - 2, 0);
-        ctx.lineTo(fuselageLen*0.98 + 18, 0);
-        ctx.stroke();
-
-        // Main wing with thickness and taper
-        ctx.fillStyle = '#cfcfcf';
-        ctx.beginPath();
-        ctx.moveTo(10, 8);
-        ctx.lineTo(85, 22);
-        ctx.lineTo(-10, 30);
-        ctx.lineTo(-20, 18);
-        ctx.closePath();
-        ctx.fill();
-        // Wing top highlight
-        ctx.strokeStyle = '#b0b0b0';
-        ctx.beginPath();
-        ctx.moveTo(0, 14);
-        ctx.lineTo(75, 20);
-        ctx.stroke();
-
-        // Tailplane (horizontal stabilizer)
-        ctx.fillStyle = '#cfcfcf';
-        ctx.beginPath();
-        ctx.moveTo(-20, -4);
-        ctx.lineTo(-48, -14);
-        ctx.lineTo(-38, 2);
-        ctx.closePath();
-        ctx.fill();
-
-        // Vertical tail fin
-        ctx.beginPath();
-        ctx.moveTo(-12, -12);
-        ctx.lineTo(-28, -34);
-        ctx.lineTo(-18, -10);
-        ctx.closePath();
-        ctx.fill();
-
-        // Simple landing gear (retracted/visible)
-        ctx.strokeStyle = '#444';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(20, 10);
-        ctx.lineTo(20, 20);
-        ctx.moveTo(60, 12);
-        ctx.lineTo(60, 24);
-        ctx.stroke();
-        ctx.fillStyle = '#333';
-        ctx.beginPath();
-        ctx.arc(20, 24, 4, 0, Math.PI*2);
-        ctx.arc(60, 28, 4, 0, Math.PI*2);
-        ctx.fill();
-
-        ctx.restore();
       }
+      
+      ctx.restore();
+    }
 
-      function checkCollisions() {
-        const groundY = canvas.height - 100;
-        return airplane.y >= groundY;
+    function updateAirplane() {
+      if (keys.space || keys.up) {
+        airplane.velocity -= airplane.thrust;
+        airplane.targetAngle = -0.2;
+      } else {
+        airplane.velocity += airplane.gravity;
+        airplane.targetAngle = 0.1;
       }
+      
+      airplane.velocity = Math.max(-8, Math.min(6, airplane.velocity));
+      airplane.y += airplane.velocity;
+      airplane.angle += (airplane.targetAngle - airplane.angle) * 0.1;
+      
+      airplane.y = Math.max(20, Math.min(canvas.height - 120, airplane.y));
+    }
 
-      function loop() {
-        drawSkyGradient();
-        drawMountains();
-        drawTrees();
-        clouds.forEach(drawCloud);
-        updateAirplane();
-        drawAirplane();
-        game.score += 0.1;
-        game.backgroundOffset += game.scrollSpeed;
-        scoreEl.textContent = `Distance: ${Math.floor(game.score)}m`;
-        if (checkCollisions()) { endGame(); return
+    function drawAirplane() {
+      ctx.save();
+      ctx.translate(airplane.x, airplane.y);
+      ctx.rotate(airplane.angle);
+      
+      ctx.fillStyle = '#e0e0e0';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 45, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#1e90ff';
+      ctx.beginPath();
+      ctx.ellipse(-15, -2, 8, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#cfcfcf';
+      ctx.beginPath();
+      ctx.moveTo(12, 8);
+      ctx.lineTo(75, 14);
+      ctx.lineTo(75, 26);
+      ctx.lineTo(0, 14);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.strokeStyle = '#b0b0b0';
+      ctx.beginPath();
+      ctx.moveTo(0, 14);
+      ctx.lineTo(75, 20);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#cfcfcf';
+      ctx.beginPath();
+      ctx.moveTo(-20, -4);
+      ctx.lineTo(-48, -14);
+      ctx.lineTo(-38, 2);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(-12, -12);
+      ctx.lineTo(-28, -34);
+      ctx.lineTo(-18, -10);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.strokeStyle = '#444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(20, 10);
+      ctx.lineTo(20, 20);
+      ctx.moveTo(60, 12);
+      ctx.lineTo(60, 24);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#333';
+      ctx.beginPath();
+      ctx.arc(20, 24, 4, 0, Math.PI * 2);
+      ctx.arc(60, 28, 4, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.restore();
+    }
+
+    function checkCollisions() {
+      const groundY = canvas.height - 100;
+      return airplane.y >= groundY;
+    }
+
+    function loop() {
+      if (!game.running) return;
+      
+      drawSkyGradient();
+      drawMountains();
+      drawTrees();
+      drawGround();
+      clouds.forEach(drawCloud);
+      
+      updateAirplane();
+      drawAirplane();
+      
+      game.score += 0.1;
+      game.backgroundOffset += game.scrollSpeed;
+      scoreEl.textContent = `Distance: ${Math.floor(game.score)}m`;
+      
+      if (checkCollisions()) {
+        endGame();
+        return;
+      }
+      
+      requestAnimationFrame(loop);
+    }
+
+    function startGame() {
+      game.running = true;
+      game.score = 0;
+      game.backgroundOffset = 0;
+      airplane.y = canvas.height / 2;
+      airplane.velocity = 0;
+      airplane.angle = 0;
+      startOverlay.classList.add('hidden');
+      loop();
+    }
+
+    function endGame() {
+      game.running = false;
+      gameOverMessage.textContent = `Game Over!\nDistance: ${Math.floor(game.score)}m\nPress SPACE to restart`;
+      gameOverOverlay.classList.remove('hidden');
+    }
+
+    function restartGame() {
+      gameOverOverlay.classList.add('hidden');
+      startGame();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        keys.space = true;
+        
+        if (!game.running && startOverlay.classList.contains('hidden')) {
+          restartGame();
+        } else if (!game.running) {
+          startGame();
+        }
+      }
+      if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        keys.up = true;
+      }
+      if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        keys.down = true;
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') keys.space = false;
+      if (e.code === 'ArrowUp') keys.up = false;
+      if (e.code === 'ArrowDown') keys.down = false;
+    });
+
+    resize();
+  </script>
+</body>
+</html>
