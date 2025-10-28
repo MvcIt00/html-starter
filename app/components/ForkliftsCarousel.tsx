@@ -1,5 +1,4 @@
 'use client'
-
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 
@@ -8,15 +7,15 @@ export default function ForkliftsCarousel() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const forklifts = [
-    { id: 1, name: 'Cat EP16NT', type: 'Elettrici', capacity: '1.6T', image: '/carrelli/Elettrico-48V-3ruote-Photoroom.jpg' },
-    { id: 2, name: 'Cat GP25N', type: 'Diesel', capacity: '2.5T' },
-    { id: 3, name: 'TP20', type: 'Transpallet', capacity: '2.0T' },
-    { id: 4, name: 'STK16', type: 'Stoccatori', capacity: '1.6T' },
-    { id: 5, name: 'Cat DP80N', type: 'Grandi Portate', capacity: '8.0T' },
-    { id: 6, name: 'SC100', type: 'Macchine Pulizia', capacity: 'N/A' },
-    { id: 7, name: 'PTF15', type: 'Piattaforme', capacity: '1.5T' },
-    { id: 8, name: 'CR50', type: 'Gru', capacity: '5.0T' },
-    { id: 9, name: 'RCK20', type: 'Scaffalature', capacity: '2.0T' },
+    { id: 1, name: 'Elettrici', type: 'Elettrici', image: '/carrelli/Elettrico-48V-3ruote-Photoroom.png' },
+    { id: 2, name: 'Diesel', type: 'Diesel', image: '/carrelli/diesel.png' },
+    { id: 3, name: 'Transpallet', type: 'Transpallet', image: '/carrelli/transpallet.png' },
+    { id: 4, name: 'Stoccatori', type: 'Stoccatori', image: '/carrelli/stoccatori.png' },
+    { id: 5, name: 'Grandi Portate', type: 'Grandi Portate', image: '/carrelli/grandi-portate.png' },
+    { id: 6, name: 'Macchine Pulizia', type: 'Macchine Pulizia', image: '/carrelli/pulizia.png' },
+    { id: 7, name: 'Piattaforme', type: 'Piattaforme', image: '/carrelli/piattaforme.png' },
+    { id: 8, name: 'Gru', type: 'Gru', image: '/carrelli/gru.png' },
+    { id: 9, name: 'Scaffalature', type: 'Scaffalature', image: '/carrelli/scaffalature.png' },
   ]
 
   useEffect(() => {
@@ -53,19 +52,16 @@ export default function ForkliftsCarousel() {
   }, [])
 
   return (
-    <section id="carrelli" className="py-32 bg-white">
-      <div className="container mx-auto px-8">
-        {/* Header */}
-        <div className="text-center mb-20 space-y-6">
-          <h2 className="text-5xl md:text-6xl font-semibold tracking-tight text-gray-900">
-            Carrelli Elevatori Caterpillar
-          </h2>
-          <p className="text-xl md:text-2xl text-gray-600 font-normal max-w-3xl mx-auto">
-            Esplora la nostra gamma completa di carrelli elevatori per ogni esigenza
-          </p>
-        </div>
-
-        {/* Carousel - Borderless Floating Dock Style */}
+    <section id="carrelli" className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-5xl font-bold text-center text-gray-900 mb-4">
+          Carrelli Elevatori
+        </h2>
+        <p className="text-xl text-center text-gray-600 mb-16">
+          Esplora la nostra gamma completa di carrelli elevatori per ogni esigenza
+        </p>
+        
+        {/* Carousel - Clean Dock Style */}
         <div
           ref={containerRef}
           className="flex items-end justify-center gap-6 py-12 px-8 overflow-x-auto"
@@ -78,7 +74,7 @@ export default function ForkliftsCarousel() {
               className="flex flex-col items-center transition-all duration-300 ease-out focus:outline-none"
               style={{ transformOrigin: 'bottom center' }}
             >
-              <div className="w-28 h-28 rounded-3xl bg-gray-100 flex items-center justify-center mb-3 shadow-sm hover:shadow-lg transition-shadow duration-300">
+              <div className="w-28 h-28 rounded-3xl bg-gray-50 flex items-center justify-center mb-3 hover:bg-gray-100 transition-colors duration-300">
                 {forklift.image ? (
                   <Image
                     src={forklift.image}
@@ -91,11 +87,11 @@ export default function ForkliftsCarousel() {
                   <div className="text-4xl text-gray-400">🚜</div>
                 )}
               </div>
-              <span className="text-sm font-normal text-gray-700">{forklift.type}</span>
+              <span className="text-sm font-medium text-gray-700">{forklift.type}</span>
             </button>
           ))}
         </div>
-
+        
         {/* Active Forklift Details */}
         {activeId && (
           <div className="mt-16 text-center space-y-6 animate-fade-in">
@@ -104,9 +100,7 @@ export default function ForkliftsCarousel() {
               return active ? (
                 <>
                   <h3 className="text-3xl font-semibold text-gray-900">{active.name}</h3>
-                  <p className="text-xl text-gray-600">
-                    {active.type} - Capacità {active.capacity}
-                  </p>
+                  <p className="text-xl text-gray-600">{active.type}</p>
                   <a
                     href="#contatti"
                     className="inline-block mt-6 px-8 py-3 text-lg font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
