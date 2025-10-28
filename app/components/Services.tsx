@@ -36,8 +36,8 @@ export default function Services() {
         <div className="grid md:grid-cols-3 gap-12">
           {services.map((service) => (
             <div key={service.id} className="space-y-6">
-              {/* Clean minimal card */}
-              <div className="bg-white rounded-3xl p-10 shadow-sm hover:shadow-md transition-shadow duration-300">
+              {/* Elegant minimal card - text only */}
+              <div className="bg-white rounded-3xl p-10 hover:shadow-sm transition-shadow duration-300">
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
                   {service.title}
                 </h3>
@@ -53,7 +53,7 @@ export default function Services() {
         <div className="text-center mt-24">
           <a
             href="#contatti"
-            className="inline-block px-8 py-3 text-lg font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
+            className="inline-block px-8 py-4 text-lg font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
           >
             Richiedi Preventivo Gratuito
           </a>
