@@ -2,10 +2,7 @@
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-white text-gray-900 py-24">
-      {/* Clean minimal background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
-      
+    <section id="hero" className="relative min-h-screen flex items-center justify-center bg-white text-gray-900 py-24">
       {/* Content */}
       <div className="container mx-auto px-8 text-center relative z-10 max-w-6xl">
         <div className="space-y-10">
@@ -18,15 +15,15 @@ export default function Hero() {
           </p>
           
           <div className="flex gap-6 justify-center flex-wrap pt-8">
-            <a 
-              href="#contatti" 
-              className="px-8 py-3 text-lg font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
+            <a
+              href="#contatti"
+              className="px-8 py-4 text-lg font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-colors duration-200"
             >
               Richiedi Preventivo
             </a>
-            <a 
-              href="#servizi" 
-              className="px-8 py-3 text-lg font-medium text-gray-900 hover:text-gray-600 transition-colors duration-200"
+            <a
+              href="#servizi"
+              className="px-8 py-4 text-lg font-medium text-gray-900 hover:text-gray-600 transition-colors duration-200"
             >
               Scopri i Servizi
             </a>
