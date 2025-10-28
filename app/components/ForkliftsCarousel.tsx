@@ -14,7 +14,7 @@ export default function ForkliftsCarousel() {
     { id: 5, name: 'Cat GP40N', type: 'Diesel', capacity: '4.0T', color: '#0f172a' },
   ]
 
-  // Mac Dock hover effect: scale items based on mouse proximity
+  // Apple Dock hover effect: scale and lift items based on mouse proximity
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -25,8 +25,9 @@ export default function ForkliftsCarousel() {
         const rect = item.getBoundingClientRect()
         const center = rect.left + rect.width / 2
         const distance = Math.abs(e.clientX - center)
-        const scale = Math.max(1, 1.6 - distance / 250) // smooth falloff
-        item.style.transform = `translateY(-8px) scale(${scale.toFixed(2)})`
+        const scale = Math.max(1, 1.5 - distance / 300) // smooth falloff
+        const translateY = Math.max(-20, -distance / 15) // lift effect
+        item.style.transform = `translateY(${translateY}px) scale(${scale.toFixed(2)})`
         item.style.zIndex = String(Math.floor(scale * 100))
       })
     }
@@ -48,15 +49,15 @@ export default function ForkliftsCarousel() {
   }, [])
 
   const ForkliftSVG = ({ color = '#111827' }: { color?: string }) => (
-    <svg width="72" height="56" viewBox="0 0 72 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="28" width="40" height="12" rx="6" fill={color} opacity="0.15" />
-      <rect x="22" y="10" width="6" height="22" rx="2" fill={color} />
-      <rect x="28" y="14" width="10" height="4" rx="1" fill={color} />
-      <rect x="40" y="10" width="4" height="26" rx="1" fill={color} />
-      <rect x="46" y="8" width="3" height="28" rx="1" fill={color} />
-      <circle cx="18" cy="44" r="6" fill={color} />
-      <circle cx="38" cy="44" r="6" fill={color} />
-      <rect x="50" y="12" width="2" height="28" rx="1" fill={color} />
+    <svg fill="none" height="56" viewBox="0 0 72 56" width="72" xmlns="http://www.w3.org/2000/svg">
+      <rect fill={color} height="12" opacity="0.15" rx="6" width="40" x="2" y="28" />
+      <rect fill={color} height="22" rx="2" width="6" x="22" y="10" />
+      <rect fill={color} height="4" rx="1" width="10" x="28" y="14" />
+      <rect fill={color} height="26" rx="1" width="4" x="40" y="10" />
+      <rect fill={color} height="28" rx="1" width="3" x="46" y="8" />
+      <circle cx="18" cy="44" fill={color} r="6" />
+      <circle cx="38" cy="44" fill={color} r="6" />
+      <rect fill={color} height="28" rx="1" width="2" x="50" y="12" />
     </svg>
   )
 
@@ -67,29 +68,44 @@ export default function ForkliftsCarousel() {
           Gamma Carrelli Elevatori
         </h2>
         <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          Immagini sospese con effetto dock su hover. Clicca per aprire la scheda dettagli.
+          Passa sopra per l'effetto dock Apple. Clicca per aprire la scheda dettagli.
         </p>
 
-        <div className="relative flex items-end justify-center gap-6 overflow-x-auto pb-10 snap-x snap-mandatory" ref={containerRef}>
+        {/* Neutral container - transparent, no background */}
+        <div 
+          ref={containerRef}
+          className="relative flex items-end justify-center gap-8 overflow-x-auto pb-16 pt-8 snap-x snap-mandatory"
+        >
           {forklifts.map(f => (
             <button
               key={f.id}
               data-dock-item
               onClick={() => setActiveId(f.id)}
-              className="group relative flex-none snap-center"
-              style={{ transition: 'transform 180ms ease' }}
+              className="group relative flex-none snap-center cursor-pointer"
+              style={{ transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}
             >
-              <div className="relative -mb-6">
-                {/* suspended image shadow */}
-                <div className="absolute inset-x-6 -bottom-2 h-4 rounded-full bg-black/10 blur-md" />
-                <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-lg p-6 hover:shadow-xl transition-shadow">
+              {/* Floating image - no border, no background, no shadow */}
+              <div className="relative">
+                {/* Subtle ground reflection only */}
+                <div className="absolute inset-x-8 -bottom-4 h-2 rounded-full bg-black/5 blur-sm" />
+                
+                {/* Image container - completely transparent */}
+                <div className="relative">
                   {f.image ? (
-                    <Image src={f.image} alt={f.name} width={72} height={56} className="object-contain" />
+                    <Image
+                      alt={f.name}
+                      className="object-contain w-32 h-24"
+                      height={96}
+                      src={f.image}
+                      width={128}
+                    />
                   ) : (
                     <ForkliftSVG color={f.color} />
                   )}
                 </div>
               </div>
+
+              {/* Label below */}
               <div className="text-center mt-6">
                 <div className="text-sm font-semibold text-gray-900">{f.name}</div>
                 <div className="text-xs text-gray-500">{f.type} • {f.capacity}</div>
@@ -98,9 +114,9 @@ export default function ForkliftsCarousel() {
           ))}
         </div>
 
-        {/* Elegant card modal */}
+        {/* Modal */}
         {activeId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6" role="dialog" aria-modal="true">
+          <div aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-6" role="dialog">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setActiveId(null)} />
             <div className="relative max-w-xl w-full bg-white rounded-3xl shadow-2xl ring-1 ring-black/5 overflow-hidden animate-[fadeIn_200ms_ease]">
               <div className="p-8">
@@ -110,7 +126,13 @@ export default function ForkliftsCarousel() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
                       <div className="sm:col-span-1 mx-auto">
                         {f.image ? (
-                          <Image src={f.image} alt={f.name} width={120} height={90} className="object-contain" />
+                          <Image
+                            alt={f.name}
+                            className="object-contain"
+                            height={90}
+                            src={f.image}
+                            width={120}
+                          />
                         ) : (
                           <ForkliftSVG color={f.color} />
                         )}
@@ -124,8 +146,18 @@ export default function ForkliftsCarousel() {
                           <li>Sistemi di sicurezza avanzati</li>
                         </ul>
                         <div className="mt-6 flex gap-3">
-                          <button onClick={() => setActiveId(null)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Chiudi</button>
-                          <a href="#contatti" className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Richiedi informazioni</a>
+                          <button
+                            onClick={() => setActiveId(null)}
+                            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            Chiudi
+                          </button>
+                          <a
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                            href="#contatti"
+                          >
+                            Richiedi informazioni
+                          </a>
                         </div>
                       </div>
                     </div>
