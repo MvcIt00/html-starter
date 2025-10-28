@@ -1,5 +1,4 @@
 'use client'
-
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -14,37 +13,37 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link
             href="/"
-            className="text-xl font-semibold text-gray-900 hover:text-gray-600 transition-colors"
+            className="text-xl font-bold text-gray-900 hover:text-[#FFCD00] transition-colors"
           >
             MVC Toscana Carrelli
           </Link>
-
+          
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="flex items-baseline space-x-10">
+            <div className="flex items-baseline space-x-12">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-base font-normal text-gray-900 hover:text-gray-600 transition-colors duration-200"
+                  className="text-lg font-medium text-gray-900 hover:text-[#FFCD00] transition-colors duration-300"
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
           </div>
-
+          
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-900 hover:text-gray-600 transition-colors"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-900 hover:text-[#FFCD00] transition-colors"
               aria-expanded="false"
             >
               <span className="sr-only">Apri menu</span>
@@ -61,16 +60,16 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-
+      
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b border-gray-200">
+        <div className="md:hidden bg-white/90 backdrop-blur-md border-b border-gray-100">
           <div className="px-4 pt-2 pb-3 space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="block px-3 py-2 text-base font-normal text-gray-900 hover:text-gray-600"
+                className="block px-3 py-3 text-lg font-medium text-gray-900 hover:text-[#FFCD00] transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
