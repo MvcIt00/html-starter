@@ -7,7 +7,7 @@ export default function ForkliftsCarousel() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const forklifts = [
-    { id: 1, name: 'Elettrici', type: 'Elettrici', image: '/carrelli/Elettrico-48V-3ruote-removebg-preview-1.jpg' },
+    { id: 1, name: 'Elettrici', type: 'Elettrici', image: '/carrelli/Elettrico-48V-3ruote-Photoroom.jpg' },
     { id: 2, name: 'Diesel', type: 'Diesel', image: '/carrelli/diesel.png' },
     { id: 3, name: 'Transpallet', type: 'Transpallet', image: '/carrelli/transpallet.png' },
     { id: 4, name: 'Stoccatori', type: 'Stoccatori', image: '/carrelli/stoccatori.png' },
