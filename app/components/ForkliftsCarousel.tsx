@@ -1,5 +1,6 @@
 'use client'
 import { useRef, useState, useEffect } from 'react'
+import Image from 'next/image'
 
 export default function ForkliftsCarousel() {
   const [activeId, setActiveId] = useState<number | null>(null)
@@ -7,9 +8,9 @@ export default function ForkliftsCarousel() {
 
   const forklifts = [
     { id: 1, name: 'Cat GP25N', type: 'Diesel', capacity: '2.5T', color: '#1f2937' },
-    { id: 2, name: 'Cat EP16NT', type: 'Elettrico', capacity: '1.6T', color: '#2563eb' },
+    { id: 2, name: 'Cat EP16NT', type: 'Elettrico', capacity: '1.6T', color: '#2563eb', image: '/carrelli/Elettrico-48V-3ruote.jpg' },
     { id: 3, name: 'Cat DP35N', type: 'Diesel', capacity: '3.5T', color: '#111827' },
-    { id: 4, name: 'Cat EP20NT', type: 'Elettrico', capacity: '2.0T', color: '#1d4ed8' },
+    { id: 4, name: 'Cat EP20NT', type: 'Elettrico', capacity: '2.0T', color: '#1d4ed8', image: '/carrelli/Elettrico-48V-3ruote.jpg' },
     { id: 5, name: 'Cat GP40N', type: 'Diesel', capacity: '4.0T', color: '#0f172a' },
   ]
 
@@ -17,6 +18,7 @@ export default function ForkliftsCarousel() {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
+
     const handleMove = (e: MouseEvent) => {
       const items = Array.from(el.querySelectorAll('[data-dock-item]')) as HTMLElement[]
       items.forEach(item => {
@@ -28,6 +30,7 @@ export default function ForkliftsCarousel() {
         item.style.zIndex = String(Math.floor(scale * 100))
       })
     }
+
     const reset = () => {
       const items = Array.from(el.querySelectorAll('[data-dock-item]')) as HTMLElement[]
       items.forEach(item => {
@@ -35,6 +38,7 @@ export default function ForkliftsCarousel() {
         item.style.zIndex = ''
       })
     }
+
     el.addEventListener('mousemove', handleMove)
     el.addEventListener('mouseleave', reset)
     return () => {
@@ -66,7 +70,7 @@ export default function ForkliftsCarousel() {
           Immagini sospese con effetto dock su hover. Clicca per aprire la scheda dettagli.
         </p>
 
-        <div ref={containerRef} className="relative flex items-end justify-center gap-6 overflow-x-auto pb-10 snap-x snap-mandatory">
+        <div className="relative flex items-end justify-center gap-6 overflow-x-auto pb-10 snap-x snap-mandatory" ref={containerRef}>
           {forklifts.map(f => (
             <button
               key={f.id}
@@ -79,7 +83,11 @@ export default function ForkliftsCarousel() {
                 {/* suspended image shadow */}
                 <div className="absolute inset-x-6 -bottom-2 h-4 rounded-full bg-black/10 blur-md" />
                 <div className="rounded-2xl bg-white ring-1 ring-black/5 shadow-lg p-6 hover:shadow-xl transition-shadow">
-                  <ForkliftSVG color={f.color} />
+                  {f.image ? (
+                    <Image src={f.image} alt={f.name} width={72} height={56} className="object-contain" />
+                  ) : (
+                    <ForkliftSVG color={f.color} />
+                  )}
                 </div>
               </div>
               <div className="text-center mt-6">
@@ -101,7 +109,11 @@ export default function ForkliftsCarousel() {
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
                       <div className="sm:col-span-1 mx-auto">
-                        <ForkliftSVG color={f.color} />
+                        {f.image ? (
+                          <Image src={f.image} alt={f.name} width={120} height={90} className="object-contain" />
+                        ) : (
+                          <ForkliftSVG color={f.color} />
+                        )}
                       </div>
                       <div className="sm:col-span-2">
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">{f.name}</h3>
