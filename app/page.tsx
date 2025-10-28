@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import Hero from './components/Hero'
 import ForkliftsCarousel from './components/ForkliftsCarousel'
@@ -7,11 +6,43 @@ import Services from './components/Services'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 
+interface Vehicle {
+  id: number
+  name: string
+  description: string
+  image: string
+  category: string
+}
+
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('Tutti')
-  const [selectedVehicle, setSelectedVehicle] = useState(null)
-
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  
   const categories = ['Tutti', 'Elettrici', 'Diesel', 'GPL', 'Retrattili', 'Carrelli elevatori']
+  
+  const vehicles: Vehicle[] = [
+    { id: 1, name: 'Carrello Elettrico E25', description: 'Carrello elevatore elettrico da 2.5 tonnellate, ideale per ambienti interni', image: '/images/elettrico1.jpg', category: 'Elettrici' },
+    { id: 2, name: 'Carrello Elettrico E30', description: 'Carrello elevatore elettrico da 3.0 tonnellate con batteria al litio', image: '/images/elettrico2.jpg', category: 'Elettrici' },
+    { id: 3, name: 'Carrello Diesel D35', description: 'Carrello elevatore diesel da 3.5 tonnellate per uso esterno', image: '/images/diesel1.jpg', category: 'Diesel' },
+    { id: 4, name: 'Carrello Diesel D50', description: 'Carrello elevatore diesel da 5.0 tonnellate ad alte prestazioni', image: '/images/diesel2.jpg', category: 'Diesel' },
+    { id: 5, name: 'Carrello GPL G25', description: 'Carrello elevatore a GPL da 2.5 tonnellate, zero emissioni', image: '/images/gpl1.jpg', category: 'GPL' },
+    { id: 6, name: 'Carrello GPL G32', description: 'Carrello elevatore a GPL da 3.2 tonnellate con cabina', image: '/images/gpl2.jpg', category: 'GPL' },
+    { id: 7, name: 'Retrattile R16', description: 'Carrello retrattile da 1.6 tonnellate per corridoi stretti', image: '/images/retrattile1.jpg', category: 'Retrattili' },
+    { id: 8, name: 'Retrattile R20', description: 'Carrello retrattile da 2.0 tonnellate con sollevamento 12m', image: '/images/retrattile2.jpg', category: 'Retrattili' },
+    { id: 9, name: 'Elevatore Standard ES18', description: 'Carrello elevatore standard da 1.8 tonnellate', image: '/images/standard1.jpg', category: 'Carrelli elevatori' },
+    { id: 10, name: 'Elevatore Standard ES25', description: 'Carrello elevatore standard da 2.5 tonnellate multifunzione', image: '/images/standard2.jpg', category: 'Carrelli elevatori' }
+  ]
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category)
+    
+    if (category === 'Tutti') {
+      setSelectedVehicle(vehicles[0])
+    } else {
+      const vehicleInCategory = vehicles.find(v => v.category === category)
+      setSelectedVehicle(vehicleInCategory || null)
+    }
+  }
 
   return (
     <main className="min-h-screen">
@@ -28,7 +59,7 @@ export default function Home() {
               {categories.map((category) => (
                 <button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => handleCategoryClick(category)}
                   className={`px-4 py-2 rounded-lg transition-all ${
                     selectedCategory === category
                       ? 'bg-blue-600 text-white'
