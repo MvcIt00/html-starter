@@ -7,7 +7,7 @@ export default function ForkliftsCarousel() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const forklifts = [
-    { id: 1, name: 'Elettrici', type: 'Elettrici', image: '/carrelli/Elettrico-48V-3ruote-Photoroom.png' },
+    { id: 1, name: 'Elettrici', type: 'Elettrici', image: '/carrelli/Elettrico-48V-3ruote-removebg-preview-1.jpg' },
     { id: 2, name: 'Diesel', type: 'Diesel', image: '/carrelli/diesel.png' },
     { id: 3, name: 'Transpallet', type: 'Transpallet', image: '/carrelli/transpallet.png' },
     { id: 4, name: 'Stoccatori', type: 'Stoccatori', image: '/carrelli/stoccatori.png' },
@@ -45,6 +45,7 @@ export default function ForkliftsCarousel() {
 
     el.addEventListener('mousemove', handleMove)
     el.addEventListener('mouseleave', handleLeave)
+
     return () => {
       el.removeEventListener('mousemove', handleMove)
       el.removeEventListener('mouseleave', handleLeave)
@@ -52,7 +53,7 @@ export default function ForkliftsCarousel() {
   }, [])
 
   return (
-    <section id="carrelli" className="py-24 bg-white">
+    <section className="py-24 bg-white" id="carrelli">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-5xl font-bold text-center text-gray-900 mb-4">
           Carrelli Elevatori
