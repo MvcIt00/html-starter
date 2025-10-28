@@ -7,11 +7,15 @@ export default function ForkliftsCarousel() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const forklifts = [
-    { id: 1, name: 'Cat GP25N', type: 'Diesel', capacity: '2.5T', color: '#1f2937' },
-    { id: 2, name: 'Cat EP16NT', type: 'Elettrico', capacity: '1.6T', color: '#2563eb', image: '/carrelli/Elettrico-48V-3ruote.jpg' },
-    { id: 3, name: 'Cat DP35N', type: 'Diesel', capacity: '3.5T', color: '#111827' },
-    { id: 4, name: 'Cat EP20NT', type: 'Elettrico', capacity: '2.0T', color: '#1d4ed8', image: '/carrelli/Elettrico-48V-3ruote.jpg' },
-    { id: 5, name: 'Cat GP40N', type: 'Diesel', capacity: '4.0T', color: '#0f172a' },
+    { id: 1, name: 'Cat EP16NT', type: 'Elettrici', capacity: '1.6T', color: '#2563eb', image: '/carrelli/Elettrico-48V-3ruote-removebg-preview-1.jpg' },
+    { id: 2, name: 'Cat GP25N', type: 'Diesel', capacity: '2.5T', color: '#1f2937' },
+    { id: 3, name: 'TP20', type: 'Transpallet', capacity: '2.0T', color: '#10b981' },
+    { id: 4, name: 'STK16', type: 'Stoccatori', capacity: '1.6T', color: '#f59e0b' },
+    { id: 5, name: 'Cat DP80N', type: 'Grandi Portate', capacity: '8.0T', color: '#ef4444' },
+    { id: 6, name: 'SC100', type: 'Macchine Pulizia', capacity: 'N/A', color: '#06b6d4' },
+    { id: 7, name: 'PTF15', type: 'Piattaforme', capacity: '1.5T', color: '#8b5cf6' },
+    { id: 8, name: 'CR50', type: 'Gru', capacity: '5.0T', color: '#ec4899' },
+    { id: 9, name: 'RCK20', type: 'Scaffalature', capacity: '2.0T', color: '#6366f1' },
   ]
 
   // Apple Dock hover effect: scale and lift items based on mouse proximity
@@ -72,7 +76,7 @@ export default function ForkliftsCarousel() {
         </p>
 
         {/* Neutral container - transparent, no background */}
-        <div 
+        <div
           ref={containerRef}
           className="relative flex items-end justify-center gap-8 overflow-x-auto pb-16 pt-8 snap-x snap-mandatory"
         >
