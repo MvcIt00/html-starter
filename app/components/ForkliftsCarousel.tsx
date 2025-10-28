@@ -2,7 +2,20 @@
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 
-export default function ForkliftsCarousel() {
+interface Vehicle {
+  id: number
+  name: string
+  description: string
+  image: string
+  category: string
+}
+
+interface ForkliftsCarouselProps {
+  onVehicleSelect: (vehicle: Vehicle | null) => void
+  selectedCategory: string
+}
+
+export default function ForkliftsCarousel({ onVehicleSelect, selectedCategory }: ForkliftsCarouselProps) {
   const [activeId, setActiveId] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
