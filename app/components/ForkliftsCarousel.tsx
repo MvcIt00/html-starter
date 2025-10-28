@@ -7,7 +7,7 @@ export default function ForkliftsCarousel() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const forklifts = [
-    { id: 1, name: 'Cat EP16NT', type: 'Elettrici', capacity: '1.6T', color: '#2563eb', image: '/carrelli/Elettrico-48V-3ruote-removebg-preview-1.jpg' },
+    { id: 1, name: 'Cat EP16NT', type: 'Elettrici', capacity: '1.6T', color: '#2563eb', image: '/carrelli/Elettrico-48V-3ruote-Photoroom.jpg' },
     { id: 2, name: 'Cat GP25N', type: 'Diesel', capacity: '2.5T', color: '#1f2937' },
     { id: 3, name: 'TP20', type: 'Transpallet', capacity: '2.0T', color: '#10b981' },
     { id: 4, name: 'STK16', type: 'Stoccatori', capacity: '1.6T', color: '#f59e0b' },
@@ -18,160 +18,123 @@ export default function ForkliftsCarousel() {
     { id: 9, name: 'RCK20', type: 'Scaffalature', capacity: '2.0T', color: '#6366f1' },
   ]
 
-  // Apple Dock hover effect: scale and lift items based on mouse proximity
+  // Apple Dock hover effect
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-
     const handleMove = (e: MouseEvent) => {
       const items = Array.from(el.querySelectorAll('[data-dock-item]')) as HTMLElement[]
       items.forEach(item => {
         const rect = item.getBoundingClientRect()
         const center = rect.left + rect.width / 2
         const distance = Math.abs(e.clientX - center)
-        const scale = Math.max(1, 1.5 - distance / 300) // smooth falloff
-        const translateY = Math.max(-20, -distance / 15) // lift effect
+        const scale = Math.max(1, 1.5 - distance / 300)
+        const translateY = Math.max(-20, -distance / 15)
         item.style.transform = `translateY(${translateY}px) scale(${scale.toFixed(2)})`
         item.style.zIndex = String(Math.floor(scale * 100))
       })
     }
-
-    const reset = () => {
+    el.addEventListener('mousemove', handleMove)
+    el.addEventListener('mouseleave', () => {
       const items = Array.from(el.querySelectorAll('[data-dock-item]')) as HTMLElement[]
       items.forEach(item => {
-        item.style.transform = ''
-        item.style.zIndex = ''
+        item.style.transform = 'translateY(0) scale(1)'
+        item.style.zIndex = '0'
       })
-    }
-
-    el.addEventListener('mousemove', handleMove)
-    el.addEventListener('mouseleave', reset)
+    })
     return () => {
       el.removeEventListener('mousemove', handleMove)
-      el.removeEventListener('mouseleave', reset)
     }
   }, [])
 
-  const ForkliftSVG = ({ color = '#111827' }: { color?: string }) => (
-    <svg fill="none" height="56" viewBox="0 0 72 56" width="72" xmlns="http://www.w3.org/2000/svg">
-      <rect fill={color} height="12" opacity="0.15" rx="6" width="40" x="2" y="28" />
-      <rect fill={color} height="22" rx="2" width="6" x="22" y="10" />
-      <rect fill={color} height="4" rx="1" width="10" x="28" y="14" />
-      <rect fill={color} height="26" rx="1" width="4" x="40" y="10" />
-      <rect fill={color} height="28" rx="1" width="3" x="46" y="8" />
-      <circle cx="18" cy="44" fill={color} r="6" />
-      <circle cx="38" cy="44" fill={color} r="6" />
-      <rect fill={color} height="28" rx="1" width="2" x="50" y="12" />
-    </svg>
-  )
+  // Card content data for 5-6 machines per category (by capacity bands)
+  const electricRanges = [
+    { band: '1.3 - 1.6T', models: ['EP13NT', 'EP16NT'], img: '/carrelli/Elettrico-48V-3ruote-Photoroom.jpg' },
+    { band: '1.8 - 2.0T', models: ['EP18NT', 'EP20NT'], img: '/carrelli/Elettrico-48V-3ruote-Photoroom.jpg' },
+    { band: '2.5 - 3.0T', models: ['EP25', 'EP30'], img: '/carrelli/Elettrico-48V-3ruote-Photoroom.jpg' },
+  ]
 
   return (
-    <section className="py-24 bg-gradient-to-b from-white via-gray-50 to-white">
-      <div className="container mx-auto px-6">
-        <h2 className="text-5xl md:text-6xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
-          Gamma Carrelli Elevatori
-        </h2>
-        <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          Passa sopra per l'effetto dock Apple. Clicca per aprire la scheda dettagli.
-        </p>
-
-        {/* Neutral container - transparent, no background */}
-        <div
-          ref={containerRef}
-          className="relative flex items-end justify-center gap-8 overflow-x-auto pb-16 pt-8 snap-x snap-mandatory"
-        >
-          {forklifts.map(f => (
-            <button
-              key={f.id}
-              data-dock-item
-              onClick={() => setActiveId(f.id)}
-              className="group relative flex-none snap-center cursor-pointer"
-              style={{ transition: 'transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-            >
-              {/* Floating image - no border, no background, no shadow */}
-              <div className="relative">
-                {/* Subtle ground reflection only */}
-                <div className="absolute inset-x-8 -bottom-4 h-2 rounded-full bg-black/5 blur-sm" />
-                
-                {/* Image container - completely transparent */}
-                <div className="relative">
-                  {f.image ? (
-                    <Image
-                      alt={f.name}
-                      className="object-contain w-32 h-24"
-                      height={96}
-                      src={f.image}
-                      width={128}
-                    />
-                  ) : (
-                    <ForkliftSVG color={f.color} />
-                  )}
-                </div>
-              </div>
-
-              {/* Label below */}
-              <div className="text-center mt-6">
-                <div className="text-sm font-semibold text-gray-900">{f.name}</div>
-                <div className="text-xs text-gray-500">{f.type} • {f.capacity}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Modal */}
-        {activeId && (
-          <div aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-6" role="dialog">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setActiveId(null)} />
-            <div className="relative max-w-xl w-full bg-white rounded-3xl shadow-2xl ring-1 ring-black/5 overflow-hidden animate-[fadeIn_200ms_ease]">
-              <div className="p-8">
-                {(() => {
-                  const f = forklifts.find(x => x.id === activeId)!
-                  return (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-                      <div className="sm:col-span-1 mx-auto">
-                        {f.image ? (
-                          <Image
-                            alt={f.name}
-                            className="object-contain"
-                            height={90}
-                            src={f.image}
-                            width={120}
-                          />
-                        ) : (
-                          <ForkliftSVG color={f.color} />
-                        )}
-                      </div>
-                      <div className="sm:col-span-2">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{f.name}</h3>
-                        <p className="text-gray-600 mb-4">Tipologia: {f.type} • Capacità: {f.capacity}</p>
-                        <ul className="list-disc list-inside text-gray-600 space-y-1">
-                          <li>Motore ad alta efficienza e ridotta manutenzione</li>
-                          <li>Visibilità ottimizzata e comfort operatore</li>
-                          <li>Sistemi di sicurezza avanzati</li>
-                        </ul>
-                        <div className="mt-6 flex gap-3">
-                          <button
-                            onClick={() => setActiveId(null)}
-                            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
-                          >
-                            Chiudi
-                          </button>
-                          <a
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                            href="#contatti"
-                          >
-                            Richiedi informazioni
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })()}
+    <div className="px-4">
+      <section ref={containerRef} className="mx-auto mt-10 flex items-end justify-center gap-4">
+        {forklifts.map(f => (
+          <button
+            key={f.id}
+            data-dock-item
+            onClick={() => setActiveId(f.id)}
+            className="group relative isolate rounded-2xl bg-white/70 ring-1 ring-black/5 backdrop-blur shadow-lg hover:shadow-xl transition-all duration-300"
+            style={{ borderTop: `3px solid ${f.color}` }}
+          >
+            <div className="p-4 flex flex-col items-center min-w-28">
+              {f.image ? (
+                <Image alt={f.name} src={f.image} width={110} height={85} className="object-contain drop-shadow" />
+              ) : (
+                <div className="h-[85px] w-[110px] rounded-xl" style={{ background: f.color }} />
+              )}
+              <div className="mt-2 text-center">
+                <div className="text-sm font-semibold text-gray-900 leading-tight">{f.name}</div>
+                <div className="text-xs text-gray-600">{f.type} • {f.capacity}</div>
               </div>
             </div>
+            <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-b from-white/80 to-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        ))}
+      </section>
+
+      {/* Modal Card */}
+      {activeId && (
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 grid place-items-center p-6">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setActiveId(null)} />
+          <div className="relative w-full max-w-4xl origin-center rounded-3xl bg-white/95 ring-1 ring-black/5 shadow-2xl animate-[scaleIn_160ms_cubic-bezier(0.16,1,0.3,1)]">
+            <div className="p-6 sm:p-8">
+              {(() => {
+                const f = forklifts.find(x => x.id === activeId)!
+                const title = `${f.type} · ${f.name}`
+                return (
+                  <div className="space-y-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">{f.type}</h3>
+                        <p className="text-gray-600">Seleziona per portata: 5-6 modelli organizzati per fascia.</p>
+                      </div>
+                      <button onClick={() => setActiveId(null)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm hover:bg-gray-50">Chiudi</button>
+                    </div>
+
+                    {/* Capacity bands grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {electricRanges.map((band, i) => (
+                        <div key={i} className="group relative overflow-hidden rounded-2xl ring-1 ring-gray-200 bg-white shadow-md hover:shadow-lg transition-shadow">
+                          <div className="p-4 flex items-center gap-4">
+                            <div className="shrink-0">
+                              <Image src={band.img} alt={band.band} width={96} height={72} className="object-contain drop-shadow" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900">{band.band}</div>
+                              <div className="mt-1 text-xs text-gray-600">{band.models.join(' • ')}</div>
+                            </div>
+                          </div>
+                          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-gray-50/90 to-transparent" />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                      <a href="#contatti" className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-white shadow hover:bg-black">
+                        Richiedi informazioni
+                      </a>
+                      <div className="text-xs text-gray-500">Animazioni smooth, ombre morbide, stile ispirato ad Apple.</div>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      )}
+
+      <style jsx global>{`
+        @keyframes scaleIn { from { transform: scale(.96); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+      `}</style>
+    </div>
   )
 }
