@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import Navbar from './components/Navbar'
 
 export const metadata: Metadata = {
   title: 'MVC Toscana Carrelli - Vendita e Noleggio Carrelli Elevatori',
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it">
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        {children}
+      </body>
     </html>
   )
 }
