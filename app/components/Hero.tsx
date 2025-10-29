@@ -1,31 +1,51 @@
 'use client'
+
 export default function Hero() {
+  const categories = [
+    'ELETTRICI',
+    'DIESEL',
+    'TRANSPALLET',
+    'MACCHINE PULIZIA',
+    'PIATTAFORME',
+    'GRU'
+  ]
+
   return (
-    <section id="hero" className="hero-section relative min-h-screen flex items-center py-24">
-      {/* Content */}
-      <div className="container mx-auto px-8 relative z-10">
-        <div className="space-y-8 text-left w-full md:w-[35%]">
-          <h1 className="text-5xl md:text-7xl font-semibold tracking-tight leading-tight text-white">
-            MVC Toscana Carrelli
+    <section id="hero" className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900">
+      {/* Main Content */}
+      <div className="flex-1 container mx-auto px-8 py-16 flex flex-col justify-center items-center">
+        {/* Title and Description */}
+        <div className="text-center mb-12 space-y-6">
+          <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-tight text-white">
+            MVC TOSCANA CARRELLI
           </h1>
-          
-          <p className="text-xl md:text-2xl text-white/90 font-normal leading-relaxed">
-            Vendita, Noleggio e Assistenza Carrelli Elevatori Caterpillar in Toscana
+          <p className="text-2xl md:text-3xl text-white/90 font-light">
+            Vendita, Noleggio e Assistenza Carrelli Elevatori
           </p>
-          
-          <div className="flex gap-6 flex-wrap pt-6">
-            <a 
-              href="#contatti"
-              className="px-8 py-4 text-lg font-medium text-blue-900 bg-white rounded-full hover:bg-gray-100 transition-colors duration-200"
-            >
-              Richiedi Preventivo
-            </a>
-            <a 
-              href="#servizi"
-              className="px-8 py-4 text-lg font-medium text-white border-2 border-white rounded-full hover:bg-white hover:text-blue-900 transition-colors duration-200"
-            >
-              Scopri i Servizi
-            </a>
+        </div>
+
+        {/* CAT Forklift Image */}
+        <div className="flex justify-center items-center my-8">
+          <img 
+            src="/images/forklift-cat.png" 
+            alt="CAT Forklift" 
+            className="max-w-2xl w-full h-auto object-contain"
+          />
+        </div>
+      </div>
+
+      {/* Product Categories */}
+      <div className="w-full bg-white/10 backdrop-blur-sm py-8">
+        <div className="container mx-auto px-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category) => (
+              <button
+                key={category}
+                className="px-6 py-4 text-white font-semibold text-lg bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-200 backdrop-blur-sm"
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </div>
       </div>
